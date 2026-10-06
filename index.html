@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>같은 거리의 점들이 만드는 모양</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f5f7fb;color:#172033;font-family:system-ui,"Noto Sans KR",sans-serif}
+.wrap{max-width:900px;margin:auto;padding:24px}
+h1{text-align:center;margin:0;font-size:clamp(26px,5vw,42px)}
+.desc{text-align:center;color:#667085;font-size:18px;margin:8px 0 18px}
+.card{background:#fff;border:2px solid #e5e7eb;border-radius:22px;padding:18px;box-shadow:0 8px 24px #00000012}
+canvas{display:block;width:min(100%,650px);height:auto;margin:auto;background:#fff;border-radius:18px}
+.controls{text-align:center;margin-top:14px}
+button{border:0;border-radius:14px;padding:12px 18px;margin:5px;font-size:17px;font-weight:800;cursor:pointer}
+.main{background:#172033;color:#fff}.sub{background:#e9edf5;color:#172033}
+.counter{text-align:center;font-size:26px;font-weight:900;margin:12px 0 4px}
+.question{text-align:center;font-size:20px;font-weight:750;min-height:58px;margin-top:10px}
+.note{text-align:center;color:#667085;font-size:15px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>점 O에서 같은 거리만큼 떨어진 점들</h1>
+<div class="desc">점을 조금씩 늘려 보세요. 어떤 모양이 나타날까요?</div>
+<div class="card">
+<canvas id="cv" width="650" height="650"></canvas>
+<div class="counter"><span id="n">3</span>개의 점</div>
+<div class="controls">
+<button class="main" onclick="next()">점 3개 더 찍기 +3</button>
+<button class="sub" onclick="autoPlay()">자동으로 보기 ▶</button>
+<button class="sub" onclick="resetAll()">처음으로</button>
+</div>
+<div class="question" id="q">세 점은 모두 중심 O에서 같은 거리에 있습니다.</div>
+<div class="note">3 → 6 → 9 → 12 → … → 33개의 점</div>
+</div>
+</div>
+<script>
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+const cx=325, cy=325, r=215;
+let count=3, timer=null;
+
+function draw(){
+ ctx.clearRect(0,0,cv.width,cv.height);
+
+ // center
+ ctx.beginPath(); ctx.arc(cx,cy,7,0,Math.PI*2); ctx.fillStyle="#172033"; ctx.fill();
+ ctx.font="bold 24px system-ui"; ctx.fillStyle="#172033"; ctx.fillText("O",cx+13,cy+8);
+
+ // faint equal-distance guides only for first few stages
+ if(count<=9){
+   ctx.setLineDash([5,8]); ctx.strokeStyle="#cfd5df"; ctx.lineWidth=1.5;
+   for(let i=0;i<count;i++){
+     let a=-Math.PI/2+i*2*Math.PI/count;
+     let x=cx+r*Math.cos(a), y=cy+r*Math.sin(a);
+     ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(x,y); ctx.stroke();
+   }
+   ctx.setLineDash([]);
+ }
+
+ // points
+ for(let i=0;i<count;i++){
+   let a=-Math.PI/2+i*2*Math.PI/count;
+   let x=cx+r*Math.cos(a), y=cy+r*Math.sin(a);
+   ctx.beginPath(); ctx.arc(x,y,7,0,Math.PI*2);
+   ctx.fillStyle="#172033"; ctx.fill();
+ }
+ document.getElementById('n').textContent=count;
+ let q=document.getElementById('q');
+ if(count===3) q.textContent="세 점은 모두 중심 O에서 같은 거리에 있습니다.";
+ else if(count<=12) q.textContent="점의 수가 늘어나니 어떤 모양처럼 보이나요?";
+ else if(count<=24) q.textContent="모든 점은 여전히 O에서 똑같은 거리만큼 떨어져 있습니다.";
+ else if(count<33) q.textContent="점 사이의 빈틈이 점점 작아지고 있습니다.";
+ else q.innerHTML="이 점들을 아주 많이 찍으면? <b>원</b>처럼 보입니다.<br>원 위의 점은 중심에서 모두 같은 거리에 있습니다.";
+}
+function next(){
+ if(count<33){count=Math.min(33,count+3);draw();}
+}
+function resetAll(){
+ if(timer){clearInterval(timer);timer=null}
+ count=3;draw();
+}
+function autoPlay(){
+ if(timer){clearInterval(timer);timer=null;return}
+ resetAll();
+ timer=setInterval(()=>{
+   if(count>=33){clearInterval(timer);timer=null;return}
+   count+=3;draw();
+ },550);
+}
+draw();
+</script>
+</body>
+</html>
