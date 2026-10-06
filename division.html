@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>나눗셈이 스마트폰을 지켜줍니다</title>
+<style>
+  *{box-sizing:border-box} body{margin:0;font-family:system-ui,"Noto Sans KR",sans-serif;background:#f4f6fb;color:#182033}
+  .wrap{max-width:920px;margin:0 auto;padding:24px}
+  h1{font-size:clamp(27px,5vw,44px);margin:0 0 6px;text-align:center}
+  .sub{text-align:center;color:#667085;margin-bottom:20px}
+  .card{background:white;border:2px solid #e5e7eb;border-radius:22px;padding:22px;box-shadow:0 8px 25px #00000012}
+  .scene{min-height:350px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+  .emoji{font-size:80px;margin-bottom:8px}
+  .bubble{max-width:720px;font-size:clamp(21px,3.5vw,32px);font-weight:800;line-height:1.45;background:#f8fafc;border-radius:20px;padding:18px 22px}
+  .small{font-size:18px;font-weight:600;color:#667085;margin-top:12px}
+  button{border:0;border-radius:14px;padding:14px 20px;font-size:18px;font-weight:800;cursor:pointer;background:#182033;color:white;margin:8px}
+  button.secondary{background:#e8ecf5;color:#182033}
+  .meter{width:min(650px,95%);height:32px;border-radius:20px;background:#e5e7eb;overflow:hidden;margin:20px auto 8px}
+  .fill{height:100%;width:100%;background:#182033;transition:width .5s}
+  .days{display:grid;grid-template-columns:repeat(7,1fr);gap:7px;width:100%;margin:18px 0}
+  .day{padding:12px 4px;border-radius:12px;background:#eef1f6;font-weight:800}
+  .day.used{background:#d5dbe7}
+  .day.dead{background:#222;color:white}
+  .choice{display:flex;flex-wrap:wrap;justify-content:center}
+  .math{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:clamp(26px,5vw,48px);font-weight:900;line-height:1.5;white-space:pre;text-align:left;background:#f8fafc;padding:18px 30px;border-radius:18px}
+  .answer{font-size:clamp(30px,6vw,55px);font-weight:950;margin:12px}
+  .hidden{display:none}
+  .footer{text-align:center;color:#98a2b3;font-size:13px;margin-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📱 나눗셈이 스마트폰을 지켜줍니다</h1>
+  <div class="sub">3학년 수학 · 세로셈을 왜 배워야 할까?</div>
+  <div class="card">
+    <div id="scene" class="scene"></div>
+  </div>
+  <div class="footer">수업 도입용 미니 인터랙티브</div>
+</div>
+
+<script>
+const total=1337, days=7, daily=191;
+let step=0, remain=total, currentDay=0;
+const scene=document.getElementById('scene');
+
+function btn(text,fn,cls=''){return `<button class="${cls}" onclick="${fn}">${text}</button>`}
+function render(){
+ if(step===0){
+  scene.innerHTML=`<div class="emoji">👩‍👧</div>
+  <div class="bubble">“이번 주 스마트폰 사용시간은<br><b>총 1,337분</b>이야.<br>7일 동안 알아서 나눠 써.”</div>
+  <div class="small">과연 아무 계획 없이 써도 괜찮을까?</div>
+  ${btn('시작하기 ▶',"step=1;render()")}`;
+ }
+ else if(step===1){
+  scene.innerHTML=`<div class="emoji">😎📱</div>
+  <div class="bubble">월요일이다!<br>오늘 스마트폰을 얼마나 쓸까?</div>
+  <div class="choice">
+   ${btn('100분만 쓴다',"use(100)")}
+   ${btn('300분 쓴다',"use(300)")}
+   ${btn('500분! 달린다',"use(500)")}
+  </div>`;
+ }
+ else if(step===2){
+   let pct=Math.max(0,remain/total*100);
+   let ds=['월','화','수','목','금','토','일'].map((d,i)=>`<div class="day ${i<currentDay?'used':''}">${d}</div>`).join('');
+   scene.innerHTML=`<div class="emoji">${remain>400?'😏':'😰'}📱</div>
+   <div class="bubble">${currentDay}일 사용 후<br>남은 시간: <b>${remain}분</b></div>
+   <div class="meter"><div class="fill" style="width:${pct}%"></div></div>
+   <div class="days">${ds}</div>
+   <div class="small">계획 없이 비슷하게 계속 쓴다고 해 보자.</div>
+   ${btn('다음 날 ▶',"nextDay()")}`;
+ }
+ else if(step===3){
+  scene.innerHTML=`<div class="emoji">☠️📵</div>
+  <div class="bubble">“엄마… 폰 좀…”<br><br>👩 “네가 다 썼잖아.”</div>
+  <div class="small">주말인데 남은 스마트폰 시간이 없다.</div>
+  ${btn('비극을 막을 방법은?',"step=4;render()")}`;
+ }
+ else if(step===4){
+  scene.innerHTML=`<div class="emoji">🤔</div>
+  <div class="bubble">처음부터 1,337분을<br><b>7일에 똑같이 나누면</b> 됐잖아?</div>
+  <div class="answer">1,337 ÷ 7 = ?</div>
+  ${btn('암산한다',"alert('바로 나오면 인정 😎')",'secondary')}
+  ${btn('세로셈으로 구한다 ▶',"step=5;render()")}`;
+ }
+ else if(step===5){
+  scene.innerHTML=`<div class="bubble">세로셈은 큰 수도<br>실수 없이 차근차근 나누게 해 준다.</div>
+  <div class="math">      191
+    ─────
+  7 ) 1337
+       7
+      ──
+       63
+       63
+      ──
+        7
+        7
+       ─
+        0</div>
+  ${btn('결과 확인 ▶',"step=6;render()")}`;
+ }
+ else if(step===6){
+  scene.innerHTML=`<div class="emoji">😎📱✨</div>
+  <div class="bubble">하루에 <b>191분</b>씩 쓰면<br>7일 동안 똑같이 사용할 수 있다!</div>
+  <div class="answer">1,337 ÷ 7 = 191</div>
+  <div class="small">191 × 7 = 1,337분</div>
+  ${btn('마지막 ▶',"step=7;render()")}`;
+ }
+ else {
+  scene.innerHTML=`<div class="emoji">📱🛡️</div>
+  <div class="bubble">나눗셈은<br><span style="font-size:1.25em">스마트폰을 지켜줍니다.</span></div>
+  <div class="small">…그러니까 세로셈을 배우자. 😌</div>
+  ${btn('처음부터 다시',"reset()",'secondary')}`;
+ }
+}
+function use(n){ remain-=n; currentDay=1; step=2; window.firstUse=n; render(); }
+function nextDay(){
+ currentDay++;
+ // 첫날 선택에 따라 '계획 없이 비슷하게' 사용해 결국 강한 결말을 만든다.
+ let burn = window.firstUse || 300;
+ remain=Math.max(0,remain-burn);
+ if(remain===0 && currentDay<7){step=3}
+ else if(currentDay>=7){step=3}
+ render();
+}
+function reset(){step=0;remain=total;currentDay=0;window.firstUse=0;render()}
+render();
+</script>
+</body>
+</html>
